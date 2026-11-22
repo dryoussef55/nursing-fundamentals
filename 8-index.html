@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nursing Fundamentals - Study Site (v2)</title>
+<style>
+  :root {
+    --bg: #f5f7fa; --card: #ffffff; --ink: #1c2733; --muted: #5d6b7a;
+    --accent: #0e7c86; --accent-soft: #e0f2f3; --good: #1e7f4f; --bad: #b3392f;
+    --warn-bg: #fdf3e3; --warn-border: #e0b15c; --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; }
+  header { background: linear-gradient(135deg, #0e7c86, #14636b); color: #fff; padding: 28px 20px 60px; text-align: center; position: relative; }
+  header h1 { font-size: 1.55rem; letter-spacing: .3px; }
+  header p { opacity: .9; margin-top: 6px; font-size: .95rem; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 16px 60px; }
+  .draft-note { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: var(--radius); padding: 12px 16px; margin: -34px auto 18px; max-width: 820px; font-size: .9rem; color: #6b5424; position: relative; }
+  nav.tabs { display: flex; gap: 8px; margin-bottom: 18px; background: #e8edf2; padding: 6px; border-radius: 12px; flex-wrap: wrap; }
+  nav.tabs button { flex: 1 1 40%; border: 0; background: transparent; padding: 10px 6px; border-radius: 9px; font-size: .95rem; font-weight: 600; color: var(--muted); cursor: pointer; }
+  nav.tabs button.active { background: var(--card); color: var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(16,42,67,.08); }
+  .card h2 { font-size: 1.15rem; color: var(--accent); margin-bottom: 10px; }
+  .card h3 { font-size: 1rem; margin: 12px 0 4px; }
+  .card ul { padding-left: 20px; }
+  .card li { margin: 5px 0; }
+  .tag { display: inline-block; background: var(--accent-soft); color: var(--accent); border-radius: 999px; font-size: .72rem; font-weight: 700; padding: 3px 10px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+  .tag.general { background: var(--warn-bg); color: #6b5424; }
+  .src { display: block; margin-top: 12px; font-size: .78rem; color: var(--muted); border-top: 1px dashed #dbe2e9; padding-top: 8px; }
+  table.vitals { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: .92rem; }
+  table.vitals th, table.vitals td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e6ebf0; }
+  table.vitals th { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .4px; }
+  .footnote { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+  audio { width: 100%; margin-top: 10px; }
+  .audio-note { font-size: .82rem; color: var(--muted); margin-top: 8px; }
+  .audio-missing { display: none; font-size: .85rem; color: #6b5424; background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 10px; padding: 8px 12px; margin-top: 10px; }
+  .fc-stage { perspective: 1200px; }
+  .flashcard { position: relative; width: 100%; min-height: 220px; cursor: pointer; transform-style: preserve-3d; transition: transform .45s; }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .fc-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: var(--card); border-radius: var(--radius); box-shadow: 0 2px 8px rgba(16,42,67,.12); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 26px; text-align: center; }
+  .fc-face.back { transform: rotateY(180deg); background: var(--accent); color: #fff; }
+  .fc-face .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .6px; opacity: .65; margin-bottom: 10px; }
+  .fc-face .text { font-size: 1.05rem; font-weight: 600; }
+  .fc-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; gap: 10px; }
+  .btn { border: 0; background: var(--accent); color: #fff; padding: 10px 18px; border-radius: 10px; font-size: .95rem; font-weight: 600; cursor: pointer; }
+  .btn.secondary { background: #e8edf2; color: var(--ink); }
+  .fc-count { color: var(--muted); font-size: .9rem; }
+  .tap-hint { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 8px; }
+  .q-options { display: grid; gap: 10px; margin-top: 14px; }
+  .q-options button { text-align: left; background: #f0f4f8; border: 2px solid transparent; border-radius: 10px; padding: 12px 14px; font-size: .95rem; cursor: pointer; }
+  .q-options button.correct { background: #e3f4ea; border-color: var(--good); color: var(--good); font-weight: 600; }
+  .q-options button.wrong { background: #fbeae8; border-color: var(--bad); color: var(--bad); }
+  .q-options button:disabled { cursor: default; }
+  .q-feedback { margin-top: 12px; font-size: .92rem; display: none; }
+  .q-feedback.show { display: block; }
+  .q-feedback.good { color: var(--good); }
+  .q-feedback.bad { color: var(--bad); }
+  .quiz-score { text-align: center; padding: 10px 0 0; font-size: 1.05rem; font-weight: 700; color: var(--accent); }
+  footer { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 34px; }
+  #lang-toggle { position: absolute; top: 12px; inset-inline-end: 12px; background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.45); padding: 6px 14px; border-radius: 999px; font-size: .85rem; font-weight: 600; cursor: pointer; }
+  html[dir="rtl"] body { text-align: right; }
+  html[dir="rtl"] .card ul { padding-left: 0; padding-right: 20px; }
+  html[dir="rtl"] table.vitals th, html[dir="rtl"] table.vitals td { text-align: right; }
+  html[dir="rtl"] .q-options button { text-align: right; }
+</style>
+</head>
+<body>
+
+<header>
+  <button id="lang-toggle" type="button">العربية</button>
+  <h1 data-i18n-key="t1">Nursing Fundamentals</h1>
+  <p data-i18n-key="t0">Batch study site: summaries, audio, flashcards and quiz, built from our course slides.</p>
+</header>
+
+<div class="wrap">
+  <div class="draft-note" data-i18n-key="t2">
+    Built from our Nursing Fundamentals lectures (Vital Signs, Administration of Medications). Your lecturer's wording is what counts in the exam.
+  </div>
+
+  <nav class="tabs">
+    <button class="active" data-tab="summaries" data-i18n-key="t3">Summaries</button>
+    <button data-tab="audio" data-i18n-key="t4">Audio</button>
+    <button data-tab="flashcards" data-i18n-key="t5">Flashcards</button>
+    <button data-tab="quiz" data-i18n-key="t6">Quiz</button>
+  </nav>
+
+  <!-- SUMMARIES -->
+  <section id="summaries" class="panel active">
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t10">Vital signs</span>
+      <h2 data-i18n-key="t11">Overview and normal adult ranges</h2>
+      <p data-i18n-key="t12">Vital signs (temperature T, pulse P, respirations R, blood pressure BP) show how the body's homeostatic mechanisms are working.</p>
+      <h3 data-i18n-key="t13">When to assess them</h3>
+      <ul>
+        <li data-i18n-key="t14">On admission to any healthcare agency, and according to agency policy.</li>
+        <li data-i18n-key="t15">Any time the patient's condition changes.</li>
+        <li data-i18n-key="t16">Before and after surgical or invasive diagnostic procedures, and before and after activity that may increase risk.</li>
+        <li data-i18n-key="t17">Before giving medications that affect the cardiovascular or respiratory systems.</li>
+      </ul>
+      <table class="vitals">
+        <tr><th data-i18n-key="t18">Sign</th><th data-i18n-key="t19">Normal range (adult)</th></tr>
+        <tr><td data-i18n-key="t20">Temperature (core)</td><td data-i18n-key="t21">36.5 to 37.5 &deg;C (97.6 to 99.6 &deg;F)</td></tr>
+        <tr><td data-i18n-key="t22">Pulse</td><td data-i18n-key="t23">60 to 100 beats/min</td></tr>
+        <tr><td data-i18n-key="t24">Respirations</td><td data-i18n-key="t25">12 to 20 breaths/min</td></tr>
+        <tr><td data-i18n-key="t26">Blood pressure</td><td data-i18n-key="t27">around 120/80 mmHg; below 100/60 is hypotension in these slides</td></tr>
+        <tr><td data-i18n-key="t28">Oxygen saturation (SpO2)*</td><td data-i18n-key="t29">95 to 100% on room air*</td></tr>
+      </table>
+      <p class="footnote" data-i18n-key="t30">* General guidance for healthy adults (FDA pulse oximeter information), not from our slides. Clinical targets differ by patient, so follow your faculty's thresholds.</p>
+      <span class="src" data-i18n-key="t31">Source: Vital Signs slides (Dr. Mona Abd El-Rahman), slides 1 to 3.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t10">Vital signs</span>
+      <h2 data-i18n-key="t32">Body temperature</h2>
+      <ul>
+        <li data-i18n-key="t33">Core temperature stays normal when heat production equals heat loss. The hypothalamus acts as the body's thermostat.</li>
+        <li data-i18n-key="t34">Heat is lost by four processes: radiation, conduction, convection and evaporation (sweating).</li>
+        <li data-i18n-key="t35">Factors that change temperature: age (newborns unstable, elderly lower), time of day (lowest around 3 AM, highest 5 to 7 PM), exercise, stress and hormones (progesterone raises it 0.3 to 0.6 &deg;C).</li>
+      </ul>
+      <h3 data-i18n-key="t36">Measurement sites and alerts</h3>
+      <ul>
+        <li data-i18n-key="t37">Oral: the most common site. Wait 15 to 30 minutes after hot or cold drinks (15 minutes after ice water). Not safe for infants, young children, unconscious or irrational patients, or seizure disorders.</li>
+        <li data-i18n-key="t38">Rectal: most reliable, but contraindicated with diarrhea, rectal surgery or disease, and in neutropenic patients. Safety alert: never use in infants (risk of trauma to the rectal mucosa). Vagal stimulation can cause bradycardia in some patients.</li>
+        <li data-i18n-key="t39">Tympanic (ear): reflects core temperature because it shares the hypothalamus blood supply.</li>
+        <li data-i18n-key="t40">Temporal artery (forehead): fast and well tolerated by infants and children.</li>
+        <li data-i18n-key="t41">Axillary: least accurate; used when other routes are not possible.</li>
+        <li data-i18n-key="t42">Convert Celsius to Fahrenheit: multiply by 9/5 and add 32.</li>
+      </ul>
+      <span class="src" data-i18n-key="t43">Source: Vital Signs slides, slides 4 to 21.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t10">Vital signs</span>
+      <h2 data-i18n-key="t44">Pulse</h2>
+      <ul>
+        <li data-i18n-key="t45">The pulse wave is created as blood ejected from the left ventricle stretches the aortic wall. Assess rate, rhythm and quality.</li>
+        <li data-i18n-key="t46">Normal adult rate: 60 to 100/min. Above 100 is tachycardia, below 60 is bradycardia (can be normal in trained athletes).</li>
+        <li data-i18n-key="t47">Rate falls with parasympathetic stimulation and rises with sympathetic stimulation (pain, anxiety, exercise, fever, caffeine). Digoxin decreases it; atropine increases it.</li>
+        <li data-i18n-key="t48">Carotid safety alert: palpate in the lower half of the neck only, and never both carotids at the same time (risk to cerebral blood flow).</li>
+        <li data-i18n-key="t49">Apical pulse: at the 5th intercostal space, midclavicular line. It is the most accurate site and the preferred one when rhythm is irregular. Count for 1 full minute.</li>
+        <li data-i18n-key="t50">Quality scale: 0 no pulse, 1+ thready/weak, 2+ difficult to palpate, 3+ normal, 4+ bounding.</li>
+        <li data-i18n-key="t51">Pulse deficit: a difference between apical and peripheral pulse, meaning some heart contractions are not perfusing the body.</li>
+        <li data-i18n-key="t52">A newly irregular rhythm needs immediate investigation.</li>
+      </ul>
+      <span class="src" data-i18n-key="t53">Source: Vital Signs slides, slides 22 to 44.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t10">Vital signs</span>
+      <h2 data-i18n-key="t54">Respirations</h2>
+      <ul>
+        <li data-i18n-key="t55">External respiration: taking in oxygen and eliminating carbon dioxide. Internal respiration: gas exchange between cells and blood.</li>
+        <li data-i18n-key="t56">Inspiration is active (muscles contract, air flows in); expiration is basically passive.</li>
+        <li data-i18n-key="t57">Normal resting adult rate: 12 to 20 breaths/min. Normal tidal volume: about 500 mL.</li>
+        <li data-i18n-key="t58">Tachypnea: above 20/min in adults. Bradypnea: below 12/min. Apnea: absence of breathing; continuous apnea is respiratory arrest.</li>
+        <li data-i18n-key="t59">Infants breathe faster: 30 to 60 breaths/min at rest.</li>
+        <li data-i18n-key="t60">Factors: age, narcotics (decrease rate and depth), stress and exercise (increase both), altitude, gender, body position and fever.</li>
+        <li data-i18n-key="t61">Count respirations without telling the patient, so they do not change their breathing.</li>
+      </ul>
+      <span class="src" data-i18n-key="t62">Source: Vital Signs slides, slides 45 to 55.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t10">Vital signs</span>
+      <h2 data-i18n-key="t63">Blood pressure</h2>
+      <ul>
+        <li data-i18n-key="t64">Blood pressure is the force of blood against vessel walls, measured in mmHg. Systolic = during ventricular contraction; diastolic = during relaxation; pulse pressure = systolic minus diastolic (120/80 gives 40 mmHg).</li>
+        <li data-i18n-key="t65">Factors: age (rises gradually with age), sympathetic activity, circulating volume (loss lowers BP, overload raises it), medications, time of day and temperature.</li>
+        <li data-i18n-key="t66">Cuff size (AHA): bladder width at least 40% of limb circumference, length 80 to 100%. Too small or loose gives falsely high readings; too large gives falsely low.</li>
+        <li data-i18n-key="t67">Measure with the arm supported at heart level. Above heart level reads falsely low, below reads falsely high. Wait at least 2 minutes between readings on the same limb.</li>
+        <li data-i18n-key="t68">Avoid the arm with a venous access, dialysis fistula, or on the side of a mastectomy.</li>
+      </ul>
+      <h3 data-i18n-key="t69">Korotkoff sounds</h3>
+      <ul>
+        <li data-i18n-key="t70">Phase I: first clear tapping sound = systolic pressure. Phase II: muffled/swishing. Phase III: loud, distinct. Phase IV: abrupt muffling = first diastolic. Phase V: last sound before silence = second diastolic.</li>
+        <li data-i18n-key="t71">Auscultatory gap: sounds disappear between phases I and II (up to 40 mmHg). Missing it can underestimate systolic or overestimate diastolic pressure; detect it by palpating the pulse while inflating.</li>
+      </ul>
+      <h3 data-i18n-key="t72">Abnormal values</h3>
+      <ul>
+        <li data-i18n-key="t73">Prehypertension: 120/80 to 139/89 mmHg. Hypertension: chronically elevated BP.</li>
+        <li data-i18n-key="t74">Hypotension: below 100/60 mmHg. A significant drop from the patient's own baseline matters more than any single number.</li>
+        <li data-i18n-key="t75">Orthostatic hypotension: a drop of at least 25 mmHg systolic or 10 mmHg diastolic on moving from lying to standing; symptoms include dizziness, blurred vision and syncope.</li>
+      </ul>
+      <span class="src" data-i18n-key="t76">Source: Vital Signs slides, slides 56 to 84.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t80">Medications</span>
+      <h2 data-i18n-key="t81">Medication basics, names and storage</h2>
+      <ul>
+        <li data-i18n-key="t82">A medication is a substance given for diagnosis, cure, treatment or relief of a symptom, or prevention of disease. Pharmacology is the study of drug effects on living organisms. A prescription is the written direction for preparing and giving a drug.</li>
+        <li data-i18n-key="t83">Uses: prevention (vaccines), diagnosis (contrast dye, Mantoux test), suppression (anticancer, antiviral), treatment (anti-asthmatics), cure (antibiotics), enhancement of health (vitamins).</li>
+        <li data-i18n-key="t84">Legal aspects: the nurse is responsible for her own actions; a doctor's order does not remove that responsibility. If a dose seems wrong or unsafe, do not give it and clarify with the doctor or pharmacist. Narcotics are kept locked in the dangerous drug cupboard.</li>
+      </ul>
+      <h3 data-i18n-key="t85">The four names of a drug</h3>
+      <ul>
+        <li data-i18n-key="t86">Chemical name: describes the exact constituents, e.g. N-(4-hydroxyphenyl)acetamide.</li>
+        <li data-i18n-key="t87">Generic name: the official non-brand name, the same worldwide, e.g. paracetamol / acetaminophen.</li>
+        <li data-i18n-key="t88">Official name: the name listed in official drug references.</li>
+        <li data-i18n-key="t89">Trade (brand) name: chosen and trademarked by the manufacturer; one drug can have many, e.g. Panadol, Tylenol.</li>
+      </ul>
+      <h3 data-i18n-key="t90">Storage</h3>
+      <ul>
+        <li data-i18n-key="t91">Store in a cool, dry place (cabinet, cart or fridge), away from direct sunlight; check expiration dates.</li>
+        <li data-i18n-key="t92">Three-cupboard system: I external use only (labeled POISON), II internal use, III dangerous drugs (morphine, pethidine) under lock. Emergency cupboard near the nurses' station holds emergency drugs and IV fluids.</li>
+      </ul>
+      <span class="src" data-i18n-key="t93">Source: Administration of Medications lecture (Dr. Hayat Mohamed), pp. 1 to 18.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t80">Medications</span>
+      <h2 data-i18n-key="t94">The 10 Rights and the 3 Checks</h2>
+      <h3 data-i18n-key="t95">3 Checks</h3>
+      <ul>
+        <li data-i18n-key="t96">Check the medication when obtaining the container, when removing the medicine from it, and when replacing the container.</li>
+      </ul>
+      <h3 data-i18n-key="t97">10 Rights</h3>
+      <ul>
+        <li data-i18n-key="t98"><strong>1. Right patient:</strong> ask the patient's full name and compare with the ID band and chart. Never rely on the room or bed number.</li>
+        <li data-i18n-key="t99"><strong>2. Right medication:</strong> compare the label with the order; watch for patients with similar names.</li>
+        <li data-i18n-key="t100"><strong>3. Right time:</strong> follow the schedule and dose intervals; antibiotics need correct timing, NSAIDs are given after meals.</li>
+        <li data-i18n-key="t101"><strong>4. Right dose:</strong> calculate accurately and double-check, especially high-risk drugs.</li>
+        <li data-i18n-key="t102"><strong>5. Right route:</strong> give only by the prescribed route; if unclear, ask the prescriber, never assume.</li>
+        <li data-i18n-key="t103"><strong>6. Right information:</strong> the patient has the right to know the drug's name, purpose, side effects and how to take it.</li>
+        <li data-i18n-key="t104"><strong>7. Right to refuse:</strong> respect refusal after explaining purpose, benefits and consequences; document and inform the provider.</li>
+        <li data-i18n-key="t105"><strong>8. Right assessment:</strong> assess before giving, e.g. check the apical pulse before digoxin and hold it if below the recommended level.</li>
+        <li data-i18n-key="t106"><strong>9. Right documentation:</strong> document after giving, never before: name, dose, route, date, time, signature.</li>
+        <li data-i18n-key="t107"><strong>10. Right evaluation:</strong> check the patient's response (therapeutic effect and side effects), document and report abnormals.</li>
+      </ul>
+      <span class="src" data-i18n-key="t108">Source: Administration of Medications lecture, pp. 19 to 30.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t80">Medications</span>
+      <h2 data-i18n-key="t109">Medication orders and abbreviations</h2>
+      <table class="vitals">
+        <tr><th data-i18n-key="t110">Type</th><th data-i18n-key="t111">Meaning</th></tr>
+        <tr><td data-i18n-key="t112">Stat</td><td data-i18n-key="t113">Immediately, once only (within about 5 minutes of the order). Example: morphine 10 mg IV stat.</td></tr>
+        <tr><td data-i18n-key="t114">ASAP</td><td data-i18n-key="t115">As soon as possible, within about 30 minutes.</td></tr>
+        <tr><td data-i18n-key="t116">Single (one-time)</td><td data-i18n-key="t117">Once at a specific time. Example: Seconal 100 mg at bedtime.</td></tr>
+        <tr><td data-i18n-key="t118">Standing</td><td data-i18n-key="t119">Regularly for a set period or until stopped. Example: amoxicillin 500 mg twice daily for 2 days.</td></tr>
+        <tr><td data-i18n-key="t120">PRN</td><td data-i18n-key="t121">As needed, after the nurse assesses the patient. Example: Amphojel 15 mL PRN.</td></tr>
+      </table>
+      <h3 data-i18n-key="t122">Seven essential parts of a medication order</h3>
+      <ul>
+        <li data-i18n-key="t123">Patient's full name, date and time, drug name, dosage, route, time and frequency, physician's signature.</li>
+      </ul>
+      <h3 data-i18n-key="t124">Common abbreviations</h3>
+      <ul>
+        <li data-i18n-key="t125">ac before meals, pc after meals, AM morning, PM afternoon, bid twice daily, tid three times daily, qid four times daily, q2h every 2 hours, PO by mouth, IM intramuscular, IV intravenous, gtt drops, tab tablet, cap capsule, ad lib as desired, Rx take (prescription).</li>
+      </ul>
+      <span class="src" data-i18n-key="t126">Source: Administration of Medications lecture, pp. 31 to 40.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t80">Medications</span>
+      <h2 data-i18n-key="t127">Drug forms, routes and types of action</h2>
+      <ul>
+        <li data-i18n-key="t128">Forms: solid (tablet, capsule), liquid (syrup, solution, suspension, shake before use), semisolid (ointment, lotion, gel). Others: lozenge, powder, suppository, transdermal patch.</li>
+        <li data-i18n-key="t129">Oral route includes sublingual (under the tongue) and buccal (against the cheek) until dissolved.</li>
+        <li data-i18n-key="t130">Parenteral (injection): intradermal ID, subcutaneous SC, intramuscular IM, intravenous IV. Cavity routes include epidural, intrathecal, intraosseous, intraperitoneal, intrapleural and intraarterial.</li>
+        <li data-i18n-key="t131">Topical: applied to skin and mucous membranes. Inhalation: through nasal/oral passages or endotracheal and tracheostomy tubes.</li>
+      </ul>
+      <h3 data-i18n-key="t132">Types of medication action</h3>
+      <ul>
+        <li data-i18n-key="t133">Therapeutic effect: the expected response, e.g. paracetamol reduces pain and fever.</li>
+        <li data-i18n-key="t134">Side effects: predictable, often unavoidable secondary effects at normal doses (nausea, stomach pain).</li>
+        <li data-i18n-key="t135">Adverse effects: severe and unpredictable, e.g. anaphylaxis, hepatotoxicity, nephrotoxicity, Stevens-Johnson syndrome, GI bleeding.</li>
+        <li data-i18n-key="t136">Toxic effects: from prolonged use or accumulation (impaired metabolism or excretion).</li>
+        <li data-i18n-key="t137">Allergic reactions: unpredictable immune responses (rash, swelling). Idiosyncratic: an unexpected over- or under-reaction, e.g. a child becoming agitated on Benadryl instead of drowsy.</li>
+      </ul>
+      <span class="src" data-i18n-key="t138">Source: Administration of Medications lecture, pp. 41 to 62.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t80">Medications</span>
+      <h2 data-i18n-key="t139">Measurement systems and dose calculation</h2>
+      <ul>
+        <li data-i18n-key="t140">Metric system: mg, g, mL, L (1 g = 1000 mg, 1 mg = 1000 mcg). Household system: drops, teaspoons, cups (inaccurate; 5 mL = 1 teaspoon, 15 mL = 1 tablespoon). Apothecary: grains (60 mg = 1 grain).</li>
+        <li data-i18n-key="t141">Convert within one system by multiplying or dividing: 350 mg = 0.35 g.</li>
+      </ul>
+      <h3 data-i18n-key="t142">Calculation methods</h3>
+      <ul>
+        <li data-i18n-key="t143">Ratio and proportion: available dose / available amount = desired dose / X. Order 500 mg amoxicillin, available 400 mg/5 mL: X = 6.25 mL.</li>
+        <li data-i18n-key="t144">Formula method (solids): dose required / stock strength = number of tablets. Amoxicillin 750 mg ordered, 250 mg capsules: 750/250 = 3 capsules.</li>
+        <li data-i18n-key="t145">Formula method (liquids): volume = (strength required x stock volume) / stock strength. Digoxin 250 mcg ordered, 0.5 mg in 2 mL: convert (0.5 mg = 500 mcg), (250 x 2)/500 = 1 mL.</li>
+        <li data-i18n-key="t146">Drip rate: drops/min = (total volume x drop factor) / (time in hours x 60). Macro set 15 gtt/mL, micro set 60. 1000 mL over 8 hours with a macro set: (1000 x 15)/(8 x 60) = about 31 drops/min.</li>
+        <li data-i18n-key="t147">By body weight: total dose = prescribed dose x weight, e.g. 5 mg/kg x 60 kg = 300 mg. By body surface area (used for chemotherapy): 50 mg/m2 x 1.8 m2 = 90 mg.</li>
+      </ul>
+      <span class="src" data-i18n-key="t148">Source: Administration of Medications lecture, pp. 63 to 83.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag" data-i18n-key="t80">Medications</span>
+      <h2 data-i18n-key="t149">Factors affecting drug action, safety and errors</h2>
+      <ul>
+        <li data-i18n-key="t150">Factors: body size, pregnancy and lactation, age (infants need smaller doses; elderly respond differently), gender, genetics (enzyme differences), diet (vitamin K counteracts warfarin), environment, psychological factors, illness (liver, kidney, circulation), time of administration, tolerance and resistance.</li>
+        <li data-i18n-key="t151">Safety rules: read the order and clarify if unclear; consider age and weight; check the drug's color, odour and consistency; follow the 10 Rights and 3 Checks; take a medication history including allergies; stay until the patient takes the medicine; never leave medicine with the patient.</li>
+        <li data-i18n-key="t152">Medication errors: unintended mistakes in prescribing, dispensing or administration. Four types: prescription errors, transcription/interpretation errors, preparation errors (calculation), administration errors (wrong dose, time, omission, extra dose). Most errors occur during administration. Report errors according to hospital policy.</li>
+      </ul>
+      <span class="src" data-i18n-key="t153">Source: Administration of Medications lecture, pp. 84 to 95.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag general" data-i18n-key="t154">General reference</span>
+      <h2 data-i18n-key="t155">Nursing process (ADPIE)</h2>
+      <ul>
+        <li data-i18n-key="t156"><strong>A</strong>ssessment: collect subjective and objective data.</li>
+        <li data-i18n-key="t157"><strong>D</strong>iagnosis: analyze data and identify the patient's problems (nursing diagnoses).</li>
+        <li data-i18n-key="t158"><strong>P</strong>lanning: set goals and choose interventions, with the patient.</li>
+        <li data-i18n-key="t159"><strong>I</strong>mplementation: carry out the planned care.</li>
+        <li data-i18n-key="t160"><strong>E</strong>valuation: check whether goals were met, then reassess and adjust.</li>
+      </ul>
+      <span class="src" data-i18n-key="t161">General reference (not yet from our slides); will be matched to your nursing process lecture when you share it.</span>
+    </div>
+
+    <div class="card">
+      <span class="tag general" data-i18n-key="t154">General reference</span>
+      <h2 data-i18n-key="t162">Hand hygiene (WHO Five Moments)</h2>
+      <ul>
+        <li data-i18n-key="t163"><strong>1.</strong> Before touching the patient. <strong>2.</strong> Before a clean or aseptic procedure. <strong>3.</strong> After body fluid exposure risk. <strong>4.</strong> After touching the patient. <strong>5.</strong> After touching the patient's surroundings.</li>
+        <li data-i18n-key="t164">Soap and water: 40 to 60 seconds. Alcohol-based hand rub: 20 to 30 seconds, until dry.</li>
+        <li data-i18n-key="t165">Wash with soap and water whenever hands are visibly soiled. For spore-forming infections such as C. difficile, guidance differs: WHO prefers soap and water when exposure is suspected or proven, while CDC accepts alcohol rub in most non-outbreak settings unless hands are visibly soiled, and encourages soap and water during outbreaks. Your faculty and placement policy decide what you do in practice.</li>
+      </ul>
+      <span class="src" data-i18n-key="t166">General guidance (WHO, CDC), not from our slides; follow your faculty's infection-control lecture.</span>
+    </div>
+
+  </section>
+
+  <!-- AUDIO -->
+  <section id="audio" class="panel">
+    <div class="card">
+      <span class="tag" data-i18n-key="t170">Audio summaries</span>
+      <h2 data-i18n-key="t171">Vital signs (Arabic)</h2>
+      <audio controls preload="metadata" src="audio/vital-signs-ar.mp3"></audio>
+      <p class="audio-missing" data-i18n-key="t172">Audio file coming soon.</p>
+      <p class="audio-note" data-i18n-key="t173">A short Arabic voice explanation of the vital signs summary.</p>
+    </div>
+    <div class="card">
+      <span class="tag" data-i18n-key="t170">Audio summaries</span>
+      <h2 data-i18n-key="t174">Administration of medications (Arabic)</h2>
+      <audio controls preload="metadata" src="audio/medications-ar.mp3"></audio>
+      <p class="audio-missing" data-i18n-key="t172">Audio file coming soon.</p>
+      <p class="audio-note" data-i18n-key="t175">A short Arabic voice explanation of the medications summary.</p>
+    </div>
+    <div class="card">
+      <span class="tag" data-i18n-key="t170">Audio summaries</span>
+      <h2 data-i18n-key="t176">Nursing process (Arabic)</h2>
+      <audio controls preload="metadata" src="audio/nursing-process-ar.mp3"></audio>
+      <p class="audio-missing" data-i18n-key="t172">Audio file coming soon.</p>
+      <p class="audio-note" data-i18n-key="t177">A short Arabic voice explanation of the nursing process summary.</p>
+    </div>
+  </section>
+
+  <!-- FLASHCARDS -->
+  <section id="flashcards" class="panel">
+    <div class="fc-stage">
+      <div class="flashcard" id="flashcard">
+        <div class="fc-face front">
+          <div class="label" data-i18n-key="t180">Question</div>
+          <div class="text" id="fc-front"></div>
+        </div>
+        <div class="fc-face back">
+          <div class="label" data-i18n-key="t181">Answer</div>
+          <div class="text" id="fc-back"></div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-controls">
+      <button class="btn secondary" id="fc-prev" data-i18n-key="t182">Previous</button>
+      <span class="fc-count" id="fc-count"></span>
+      <button class="btn" id="fc-next" data-i18n-key="t183">Next</button>
+    </div>
+    <p class="tap-hint" data-i18n-key="t184">Tap the card to flip it.</p>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="panel">
+    <div class="card">
+      <span class="tag" data-i18n-key="t185">Quiz</span>
+      <h2 id="q-title">Question 1</h2>
+      <p id="q-text"></p>
+      <div class="q-options" id="q-options"></div>
+      <p class="q-feedback" id="q-feedback"></p>
+      <div class="fc-controls">
+        <span class="fc-count" id="q-count"></span>
+        <button class="btn" id="q-next" disabled>Next question</button>
+      </div>
+      <p class="quiz-score" id="q-score"></p>
+    </div>
+  </section>
+
+  <footer data-i18n-key="t186">
+    Version 2, built from the batch's Nursing Fundamentals lectures. Verify against your slides before exams.
+  </footer>
+</div>
+
+<script>
+// Tabs
+function activateTab(name) {
+  document.querySelectorAll('nav.tabs button').forEach(function(b) { b.classList.toggle('active', b.dataset.tab === name); });
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.toggle('active', p.id === name); });
+}
+document.querySelectorAll('nav.tabs button').forEach(function(btn) {
+  btn.addEventListener('click', function() { activateTab(btn.dataset.tab); });
+});
+if (location.hash) {
+  var wanted = location.hash.slice(1);
+  if (document.getElementById(wanted)) activateTab(wanted);
+}
+
+// Audio: show a note if the file is missing
+document.querySelectorAll('#audio audio').forEach(function(a) {
+  a.addEventListener('error', function() {
+    var m = a.parentElement.querySelector('.audio-missing');
+    if (m) m.style.display = 'block';
+    a.style.display = 'none';
+  });
+});
+
+// Flashcards
+var cardsEN = [
+  { q: "Which vital signs do our slides list, and what do they show?", a: "Temperature, pulse, respirations and blood pressure; they show how the body's homeostatic mechanisms are working (slide 2)." },
+  { q: "When should vital signs be assessed?", a: "On admission, per agency policy, with any change in condition, before/after surgery or invasive procedures, before/after risky activity, and before meds that affect the heart or breathing (slide 3)." },
+  { q: "Normal core body temperature range?", a: "36.5 to 37.5 C (97.6 to 99.6 F) (slide 4)." },
+  { q: "Name the four processes of heat loss.", a: "Radiation, conduction, convection and evaporation (slide 7)." },
+  { q: "Which temperature route is contraindicated in infants, and why?", a: "Rectal, because it can cause trauma to the rectal mucosa (slides 16-17)." },
+  { q: "Normal adult pulse rate, and the terms for too fast and too slow?", a: "60 to 100/min; above 100 is tachycardia, below 60 is bradycardia (slide 39)." },
+  { q: "Pulse quality scale (0 to 4+)?", a: "0 absent, 1+ thready/weak, 2+ difficult to palpate, 3+ normal, 4+ bounding (slides 42-43)." },
+  { q: "What is a pulse deficit?", a: "A difference between the apical and peripheral pulses, when some ventricular contractions do not perfuse the body (slide 44)." },
+  { q: "Normal adult respiratory rate? Tachypnea and bradypnea?", a: "12 to 20/min; tachypnea above 20, bradypnea below 12 (slides 47, 55)." },
+  { q: "Korotkoff phases I and V?", a: "Phase I: first clear tapping sound = systolic. Phase V: last sound before silence = second diastolic (slides 72-78)." },
+  { q: "What is an auscultatory gap and why does it matter?", a: "Sounds disappear between phases I and II; missing it can underestimate systolic or overestimate diastolic pressure (slides 74, 80)." },
+  { q: "Orthostatic hypotension definition (our slides)?", a: "A drop of at least 25 mmHg systolic or at least 10 mmHg diastolic on standing up (slide 84)." },
+  { q: "List the 10 Rights of medication administration.", a: "Right patient, medication, time, dose, route, information, to refuse, assessment, documentation, evaluation (pp. 20-30)." },
+  { q: "What are the 3 Checks?", a: "Check when obtaining the container, when removing the medicine from it, and when replacing the container (p. 19)." },
+  { q: "The four types of medication orders?", a: "Stat (immediately, once), single (once at a set time), standing (regularly until stopped), PRN (as needed) (pp. 31-34)." },
+  { q: "Generic name vs trade name?", a: "Generic is the official non-brand name used worldwide (paracetamol); trade is the company's brand name (Panadol, Tylenol) (pp. 11-12)." },
+  { q: "Drip rate formula?", a: "Drops/min = (total volume x drop factor) / (time in hours x 60). Macro set 15 gtt/mL, micro set 60 (pp. 79-81)." },
+  { q: "The four types of medication errors, and where do most occur?", a: "Prescription, transcription, preparation and administration errors; most occur during administration (pp. 94-95)." },
+  { q: "What does ADPIE stand for?", a: "Assessment, Diagnosis, Planning, Implementation, Evaluation." }
+];
+var cards = cardsEN;
+var fcIndex = 0;
+var cardEl = document.getElementById('flashcard');
+function renderCard() {
+  document.getElementById('fc-front').textContent = cards[fcIndex].q;
+  document.getElementById('fc-back').textContent = cards[fcIndex].a;
+  document.getElementById('fc-count').textContent = (fcIndex + 1) + " / " + cards.length;
+  cardEl.classList.remove('flipped');
+}
+cardEl.addEventListener('click', function() { cardEl.classList.toggle('flipped'); });
+document.getElementById('fc-next').addEventListener('click', function() { fcIndex = (fcIndex + 1) % cards.length; renderCard(); });
+document.getElementById('fc-prev').addEventListener('click', function() { fcIndex = (fcIndex - 1 + cards.length) % cards.length; renderCard(); });
+renderCard();
+
+// Quiz
+var quizEN = [
+  { q: "Which of these is the normal adult pulse range?", options: ["40 to 60 beats/min", "60 to 100 beats/min", "100 to 140 beats/min", "30 to 50 beats/min"], correct: 1, why: "A normal resting adult pulse is 60 to 100 beats per minute (slide 39)." },
+  { q: "According to our slides, hypotension in adults is blood pressure below:", options: ["140/90 mmHg", "120/80 mmHg", "100/60 mmHg", "160/100 mmHg"], correct: 2, why: "The slides define hypotension as BP below 100/60 mmHg (slide 82)." },
+  { q: "Which temperature route is contraindicated in infants?", options: ["Tympanic (ear)", "Temporal artery (forehead)", "Axillary", "Rectal"], correct: 3, why: "Rectal thermometers can cause trauma to the rectal mucosa in infants (slides 16-17)." },
+  { q: "How long do you count when taking an apical pulse?", options: ["15 seconds x 4", "30 seconds x 2", "1 full minute", "10 seconds x 6"], correct: 2, why: "The apical pulse is counted for 1 full minute (slide 38)." },
+  { q: "Before giving a medication, you identify the patient by:", options: ["The room and bed number", "Asking the full name and checking the ID band and chart", "The name on the door", "Asking the patient in the next bed"], correct: 1, why: "Right patient: full name plus ID band/chart, never the room or bed number (p. 20)." },
+  { q: "A stat order should be given:", options: ["Within about 5 minutes of the written order, once", "Within 2 hours", "Every day at the same time", "Only when the patient asks"], correct: 0, why: "Stat means immediately, given once, within about 5 minutes (pp. 31, 37)." },
+  { q: "A PRN order means the nurse gives the medication:", options: ["Every 2 hours", "Only when the patient needs it, after assessing the patient", "Immediately in an emergency", "Once at bedtime"], correct: 1, why: "PRN (pro re nata) means as needed, based on the nurse's assessment (pp. 33, 37)." },
+  { q: "A patient needs 1000 mL of normal saline over 8 hours using a macro set (15 gtt/mL). The drip rate is about:", options: ["15 drops/min", "21 drops/min", "31 drops/min", "60 drops/min"], correct: 2, why: "(1000 x 15)/(8 x 60) = 15000/480 = about 31 drops/min (pp. 79-81)." },
+  { q: "Most medication errors happen during which stage?", options: ["Prescription", "Transcription", "Preparation", "Administration"], correct: 3, why: "Most medication errors occur during the administration stage (pp. 94-95)." },
+  { q: "The correct order of the nursing process (ADPIE) is:", options: ["Diagnosis, Assessment, Planning, Implementation, Evaluation", "Assessment, Diagnosis, Planning, Implementation, Evaluation", "Assessment, Planning, Diagnosis, Implementation, Evaluation", "Planning, Assessment, Diagnosis, Evaluation, Implementation"], correct: 1, why: "Assessment comes first, then Diagnosis, Planning, Implementation, Evaluation." }
+];
+var quiz = quizEN;
+var qIndex = 0, qScore = 0, answered = false;
+function renderQuestion() {
+  answered = false;
+  var item = quiz[qIndex];
+  document.getElementById('q-title').textContent = T("Question") + " " + (qIndex + 1);
+  document.getElementById('q-text').textContent = item.q;
+  document.getElementById('q-count').textContent = (qIndex + 1) + " / " + quiz.length;
+  document.getElementById('q-score').textContent = T("Score") + ": " + qScore;
+  var fb = document.getElementById('q-feedback');
+  fb.className = 'q-feedback';
+  fb.textContent = '';
+  var nextBtn = document.getElementById('q-next');
+  nextBtn.disabled = true;
+  nextBtn.textContent = (qIndex === quiz.length - 1) ? T("See final score") : T("Next question");
+  var box = document.getElementById('q-options');
+  box.innerHTML = '';
+  item.options.forEach(function(opt, i) {
+    var b = document.createElement('button');
+    b.textContent = opt;
+    b.addEventListener('click', function() { answer(i, b); });
+    box.appendChild(b);
+  });
+}
+function answer(i, btn) {
+  if (answered) return;
+  answered = true;
+  var item = quiz[qIndex];
+  var buttons = document.querySelectorAll('#q-options button');
+  buttons.forEach(function(b, j) {
+    b.disabled = true;
+    if (j === item.correct) b.classList.add('correct');
+  });
+  var fb = document.getElementById('q-feedback');
+  if (i === item.correct) {
+    qScore++;
+    fb.className = 'q-feedback show good';
+    fb.textContent = T("Correct. ") + item.why;
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'q-feedback show bad';
+    fb.textContent = T("Not quite. ") + item.why;
+  }
+  document.getElementById('q-score').textContent = T("Score") + ": " + qScore;
+  document.getElementById('q-next').disabled = false;
+}
+document.getElementById('q-next').addEventListener('click', function() {
+  if (qIndex < quiz.length - 1) {
+    qIndex++;
+    renderQuestion();
+  } else {
+    document.getElementById('q-title').textContent = T("Done");
+    document.getElementById('q-text').textContent = (LANG === "ar" ? "حصلت على " + qScore + " من " + quiz.length + "." : "You scored " + qScore + " out of " + quiz.length + ".");
+    document.getElementById('q-options').innerHTML = '';
+    var fb = document.getElementById('q-feedback');
+    fb.className = 'q-feedback show good';
+    fb.textContent = qScore === quiz.length ? T("full") : T("review");
+    document.getElementById('q-count').textContent = '';
+    document.getElementById('q-next').disabled = true;
+  }
+});
+renderQuestion();
+
+var cardsAR = [
+  { q: "ما العلامات الحيوية (Vital signs) المذكورة في الشرائح، وماذا توضح؟", a: "درجة الحرارة (T)، النبض (P)، التنفس (R)، وضغط الدم (BP)؛ وتوضح كيف تعمل آليات الاتزان الداخلي (Homeostasis) في الجسم (شريحة 2)." },
+  { q: "متى نقيس العلامات الحيوية؟", a: "عند دخول المريض، وحسب سياسة المنشأة، وعند أي تغير في حالة المريض، وقبل وبعد الجراحة أو الإجراءات التشخيصية، وقبل وبعد الأنشطة الخطرة، وقبل الأدوية المؤثرة على القلب أو التنفس (شريحة 3)." },
+  { q: "ما المعدل الطبيعي لدرجة حرارة الجسم الداخلية (Core temperature)؟", a: "من 36.5 إلى 37.5 درجة مئوية (97.6 إلى 99.6 فهرنهايت) (شريحة 4)." },
+  { q: "اذكر العمليات الأربع لفقد الحرارة.", a: "الإشعاع (Radiation)، التوصيل (Conduction)، الحمل الحراري (Convection)، والتبخر (Evaporation) (شريحة 7)." },
+  { q: "أي طريق لقياس الحرارة ممنوع في الرضّع، ولماذا؟", a: "الطريق الشرجي (Rectal)، لأنه قد يسبب إصابة في الغشاء المخاطي للمستقيم (شريحتا 16-17)." },
+  { q: "ما معدل نبض البالغ الطبيعي، وما مصطلحا الزيادة والنقصان؟", a: "من 60 إلى 100 نبضة/دقيقة؛ أكثر من 100 تسرع القلب (Tachycardia)، وأقل من 60 بطء القلب (Bradycardia) (شريحة 39)." },
+  { q: "ما مقياس قوة النبض (Pulse quality) من 0 إلى 4+؟", a: "0 لا يوجد نبض، 1+ ضعيف خيطي، 2+ صعب الجس، 3+ طبيعي، 4+ قوي وثّاب (Bounding) (شريحتا 42-43)." },
+  { q: "ما عجز النبض (Pulse deficit)؟", a: "فرق بين النبض القمّي (Apical) والنبض المحيطي، عندما لا تضخ بعض انقباضات البطين الدم للجسم (شريحة 44)." },
+  { q: "ما معدل تنفس البالغ الطبيعي؟ وما تسرع التنفس وبطء التنفس؟", a: "من 12 إلى 20 نفسًا/دقيقة؛ تسرع التنفس (Tachypnea) أكثر من 20، وبطء التنفس (Bradypnea) أقل من 12 (شريحتا 47 و55)." },
+  { q: "ماذا تمثل المرحلتان الأولى والخامسة من أصوات كوروتكوف (Korotkoff)؟", a: "المرحلة الأولى: أول صوت نقر واضح = الضغط الانقباضي. المرحلة الخامسة: آخر صوت قبل الصمت = القياس الانبساطي الثاني (شرائح 72-78)." },
+  { q: "ما الفجوة السمعية (Auscultatory gap) ولماذا تهم؟", a: "تختفي الأصوات بين المرحلتين الأولى والثانية؛ وإغفالها قد يقلل تقدير الانقباضي أو يزيد تقدير الانبساطي (شريحتا 74 و80)." },
+  { q: "ما تعريف انخفاض الضغط الانتصابي (Orthostatic hypotension) في شرائحنا؟", a: "هبوط 25 ملم زئبق على الأقل في الانقباضي أو 10 ملم زئبق على الأقل في الانبساطي عند الوقوف (شريحة 84)." },
+  { q: "اذكر الحقوق العشرة (10 Rights) لإعطاء الأدوية.", a: "المريض الصحيح، الدواء الصحيح، الوقت الصحيح، الجرعة الصحيحة، الطريق الصحيح، المعلومات، حق الرفض، التقييم قبل الإعطاء، التوثيق، التقويم بعد الإعطاء (ص 20-30)." },
+  { q: "ما الفحوصات الثلاثة (3 Checks)؟", a: "افحص الدواء عند إحضار العبوة، وعند إخراج الدواء منها، وعند إعادة العبوة (ص 19)." },
+  { q: "ما أنواع الأوامر الدوائية الأربعة؟", a: "أمر فوري (Stat) يُعطى مرة فورًا، أمر لمرة واحدة (Single)، أمر مستمر (Standing) حتى يُوقف، وأمر عند الحاجة (PRN) (ص 31-34)." },
+  { q: "ما الفرق بين الاسم العلمي (Generic) والاسم التجاري (Trade)؟", a: "الاسم العلمي هو الاسم الرسمي غير التجاري الموحد عالميًا (مثل Paracetamol)، والاسم التجاري تختاره الشركة المنتجة (مثل Panadol وTylenol) (ص 11-12)." },
+  { q: "ما معادلة معدل التنقيط (Drip rate)؟", a: "قطرات/دقيقة = (الحجم الكلي × معامل التنقيط) ÷ (الزمن بالساعات × 60). الطقم الكبير 15 قطرة/مل والصغير 60 (ص 79-81)." },
+  { q: "ما أنواع الأخطاء الدوائية الأربعة، وأين تحدث معظمها؟", a: "أخطاء الوصف، والنسخ/التفسير، والتحضير (الحساب)، والإعطاء؛ ومعظمها يحدث أثناء مرحلة الإعطاء (ص 94-95)." },
+  { q: "ماذا تعني ADPIE؟", a: "التقييم (Assessment)، التشخيص (Diagnosis)، التخطيط (Planning)، التنفيذ (Implementation)، التقويم (Evaluation)." }
+];
+
+var quizAR = [
+  { q: "أي مما يلي هو معدل نبض البالغ الطبيعي؟", options: ["من 40 إلى 60 نبضة/دقيقة", "من 60 إلى 100 نبضة/دقيقة", "من 100 إلى 140 نبضة/دقيقة", "من 30 إلى 50 نبضة/دقيقة"], correct: 1, why: "معدل نبض البالغ الطبيعي في الراحة من 60 إلى 100 نبضة في الدقيقة (شريحة 39)." },
+  { q: "وفق شرائحنا، انخفاض ضغط الدم (Hypotension) لدى البالغين هو ضغط أقل من:", options: ["140/90 ملم زئبق", "120/80 ملم زئبق", "100/60 ملم زئبق", "160/100 ملم زئبق"], correct: 2, why: "تعرّف الشرائح انخفاض الضغط بأنه أقل من 100/60 ملم زئبق (شريحة 82)." },
+  { q: "أي طريق لقياس درجة الحرارة ممنوع في الرضّع؟", options: ["الأذن (Tympanic)", "الشريان الصدغي (الجبهة)", "الإبطي (Axillary)", "الشرجي (Rectal)"], correct: 3, why: "مقاييس الحرارة الشرجية قد تسبب إصابة في الغشاء المخاطي للمستقيم لدى الرضّع (شريحتا 16-17)." },
+  { q: "كم مدة عدّ النبض القمّي (Apical pulse)؟", options: ["15 ثانية × 4", "30 ثانية × 2", "دقيقة كاملة", "10 ثوانٍ × 6"], correct: 2, why: "يُعدّ النبض القمّي لدقيقة كاملة (شريحة 38)." },
+  { q: "قبل إعطاء دواء، تتحقق من هوية المريض عن طريق:", options: ["رقم الغرفة والسرير", "سؤال الاسم الكامل ومطابقته مع سوار الهوية والملف", "الاسم المكتوب على الباب", "سؤال المريض في السرير المجاور"], correct: 1, why: "المريض الصحيح: الاسم الكامل مع سوار الهوية/الملف، وليس رقم الغرفة أو السرير أبدًا (ص 20)." },
+  { q: "الأمر الفوري (Stat) يجب أن يُعطى:", options: ["خلال 5 دقائق تقريبًا من كتابة الأمر، مرة واحدة", "خلال ساعتين", "كل يوم في الوقت نفسه", "فقط عندما يطلب المريض"], correct: 0, why: "Stat تعني فورًا، تُعطى مرة واحدة خلال 5 دقائق تقريبًا (ص 31 و37)." },
+  { q: "أمر PRN يعني أن الممرضة تعطي الدواء:", options: ["كل ساعتين", "فقط عند حاجة المريض، بعد تقييم حالته", "فورًا في الطوارئ", "مرة عند النوم"], correct: 1, why: "PRN (عند الحاجة) بناءً على تقييم الممرضة لحالة المريض (ص 33 و37)." },
+  { q: "مريض يحتاج 1000 مل محلول ملحي خلال 8 ساعات بطقم كبير (15 قطرة/مل). معدل التنقيط حوالي:", options: ["15 قطرة/دقيقة", "21 قطرة/دقيقة", "31 قطرة/دقيقة", "60 قطرة/دقيقة"], correct: 2, why: "(1000 × 15) ÷ (8 × 60) = 15000 ÷ 480 = حوالي 31 قطرة/دقيقة (ص 79-81)." },
+  { q: "معظم الأخطاء الدوائية تحدث في أي مرحلة؟", options: ["الوصف", "النسخ/التفسير", "التحضير", "الإعطاء"], correct: 3, why: "معظم الأخطاء الدوائية تحدث أثناء مرحلة إعطاء الدواء (ص 94-95)." },
+  { q: "الترتيب الصحيح للعملية التمريضية (ADPIE) هو:", options: ["التشخيص، التقييم، التخطيط، التنفيذ، التقويم", "التقييم، التشخيص، التخطيط، التنفيذ، التقويم", "التقييم، التخطيط، التشخيص، التنفيذ، التقويم", "التخطيط، التقييم، التشخيص، التقويم، التنفيذ"], correct: 1, why: "يبدأ بالتقييم، ثم التشخيص، ثم التخطيط، ثم التنفيذ، ثم التقويم." }
+];
+
+// Language toggle (EN/AR)
+var LANG = "en";
+var AR_S1 = {
+"t0": "موقع مذاكرة الدفعة: ملخصات وصوتيات وبطاقات مراجعة واختبار، مبني على شرائح مقررنا.",
+"t1": "أساسيات التمريض",
+"t2": "مبني على محاضرات أساسيات التمريض (العلامات الحيوية، إعطاء الأدوية). صياغة محاضرك هي المعتمدة في الامتحان.",
+"t3": "الملخصات", "t4": "الصوتيات", "t5": "البطاقات", "t6": "الاختبار",
+"t10": "العلامات الحيوية (Vital Signs)",
+"t11": "نظرة عامة والمعدلات الطبيعية للبالغين",
+"t12": "العلامات الحيوية (درجة الحرارة T، النبض P، التنفس R، ضغط الدم BP) توضح كيف تعمل آليات الاتزان الداخلي (Homeostasis) في الجسم.",
+"t13": "متى نقيسها",
+"t14": "عند الدخول لأي منشأة صحية، وحسب سياسة المنشأة.",
+"t15": "عند أي تغير في حالة المريض.",
+"t16": "قبل وبعد الجراحة أو الإجراءات التشخيصية الباضعة، وقبل وبعد أي نشاط قد يزيد الخطر.",
+"t17": "قبل إعطاء الأدوية المؤثرة على الجهاز القلبي الوعائي أو التنفسي.",
+"t18": "العلامة", "t19": "المعدل الطبيعي (للبالغ)",
+"t20": "درجة الحرارة (الداخلية Core)", "t21": "من 36.5 إلى 37.5 درجة مئوية (97.6 إلى 99.6 فهرنهايت)",
+"t22": "النبض (Pulse)", "t23": "من 60 إلى 100 نبضة/دقيقة",
+"t24": "التنفس (Respirations)", "t25": "من 12 إلى 20 نفسًا/دقيقة",
+"t26": "ضغط الدم (Blood Pressure)", "t27": "حوالي 120/80 ملم زئبق؛ وأقل من 100/60 انخفاض ضغط في هذه الشرائح",
+"t28": "تشبع الأكسجين (SpO2)*", "t29": "من 95 إلى 100% على هواء الغرفة*",
+"t30": "* إرشاد عام للبالغين الأصحاء (من معلومات FDA عن مقياس التأكسج)، وليس من شرائحنا. الأهداف السريرية تختلف حسب المريض، فاتبع حدود كليتك.",
+"t31": "المصدر: شرائح العلامات الحيوية (د. منى عبد الرحمن)، شرائح 1 إلى 3.",
+"t32": "درجة حرارة الجسم",
+"t33": "تبقى درجة الحرارة الداخلية طبيعية عندما يتساوى إنتاج الحرارة مع فقدها. ويعمل الوطاء (Hypothalamus) كمنظّم حراري للجسم.",
+"t34": "تُفقد الحرارة بأربع عمليات: الإشعاع (Radiation)، التوصيل (Conduction)، الحمل الحراري (Convection)، والتبخر (Evaporation - العرق).",
+"t35": "عوامل تغيّر درجة الحرارة: العمر (غير مستقرة في حديثي الولادة، وأقل في كبار السن)، وقت اليوم (أدنى مستوى حوالي 3 فجرًا، وأعلى مستوى من 5 إلى 7 مساءً)، والتمرين، والإجهاد، والهرمونات (البروجستيرون يرفعها 0.3 إلى 0.6 درجة).",
+"t36": "مواضع القياس وتنبيهات",
+"t37": "الفموي (Oral): الأكثر شيوعًا. انتظر 15 إلى 30 دقيقة بعد المشروبات الساخنة أو الباردة (15 دقيقة بعد الماء المثلج). غير آمن للرضّع وصغار الأطفال وفاقدي الوعي ومرضى التشنجات.",
+"t38": "الشرجي (Rectal): الأكثر دقة، لكنه ممنوع مع الإسهال وبعد جراحات وأمراض المستقيم ولدى مرضى نقص العدلات (Neutropenic). تنبيه سلامة: ممنوع في الرضّع (خطر إصابة الغشاء المخاطي). وقد يسبب تنبيه العصب المبهم بطء القلب لدى بعض المرضى.",
+"t39": "الأذن (Tympanic): يعكس درجة الحرارة الداخلية لأنه يشارك الوطاء في مصدر الدم.",
+"t40": "الشريان الصدغي (الجبهة): سريع ومقبول جيدًا لدى الرضّع والأطفال.",
+"t41": "الإبطي (Axillary): الأقل دقة؛ يُستخدم عندما لا تصلح الطرق الأخرى.",
+"t42": "للتحويل من مئوية إلى فهرنهايت: اضرب في 9/5 ثم أضف 32.",
+"t43": "المصدر: شرائح العلامات الحيوية، شرائح 4 إلى 21.",
+"t44": "النبض (Pulse)",
+"t45": "تتكون موجة النبض عندما يمدد الدم المندفع من البطين الأيسر جدار الأبهر المرن. قيّم المعدل والانتظام والقوة.",
+"t46": "المعدل الطبيعي للبالغ: من 60 إلى 100/دقيقة. أكثر من 100 تسرع القلب (Tachycardia)، وأقل من 60 بطء القلب (Bradycardia) وقد يكون طبيعيًا في الرياضيين المدربين.",
+"t47": "ينخفض المعدل مع تنبيه الجهاز نظير الودي (Parasympathetic) ويرتفع مع تنبيه الجهاز الودي (Sympathetic): الألم والقلق والتمرين والحمى والكافيين. الديجوكسين (Digoxin) يخفضه، والأتروبين (Atropine) يرفعه.",
+"t48": "تنبيه سلامة للشريان السباتي (Carotid): اجسّه في النصف السفلي من الرقبة فقط، ولا تجسّ السباتيين معًا أبدًا (خطر على تدفق الدم للمخ).",
+"t49": "النبض القمّي (Apical): في الفضاء بين الضلعي الخامس على خط منتصف الترقوة. هو الأدق والمفضل عند عدم انتظام الإيقاع. عُدّه لدقيقة كاملة.",
+"t50": "مقياس القوة: 0 لا نبض، 1+ ضعيف خيطي، 2+ صعب الجس، 3+ طبيعي، 4+ وثّاب قوي.",
+"t51": "عجز النبض (Pulse deficit): فرق بين النبض القمّي والمحيطي، أي أن بعض انقباضات القلب لا تضخ الدم للجسم.",
+"t52": "عدم انتظام الإيقاع حديث الظهور يحتاج فحصًا فوريًا.",
+"t53": "المصدر: شرائح العلامات الحيوية، شرائح 22 إلى 44.",
+"t54": "التنفس (Respirations)",
+"t55": "التنفس الخارجي: إدخال الأكسجين وإخراج ثاني أكسيد الكربون. التنفس الداخلي: تبادل الغازات بين الخلايا والدم.",
+"t56": "الشهيق عملية نشطة (تنقبض العضلات فيدخل الهواء)؛ والزفير عملية سلبية أساسًا.",
+"t57": "معدل البالغ الطبيعي في الراحة: من 12 إلى 20 نفسًا/دقيقة. حجم المد والجزر (Tidal volume) الطبيعي: حوالي 500 مل.",
+"t58": "تسرع التنفس (Tachypnea): أكثر من 20/دقيقة. بطء التنفس (Bradypnea): أقل من 12/دقيقة. انقطاع النفس (Apnea): غياب التنفس؛ واستمراره يعني توقف التنفس.",
+"t59": "الرضّع يتنفسون أسرع: من 30 إلى 60 نفسًا/دقيقة في الراحة.",
+"t60": "العوامل المؤثرة: العمر، والمسكنات المخدرة (تخفض المعدل والعمق)، والإجهاد والتمرين (يزيدانهما)، والارتفاع، والجنس، ووضعية الجسم، والحمى.",
+"t61": "عُدّ التنفس دون إخبار المريض، حتى لا يغيّر نمط تنفسه.",
+"t62": "المصدر: شرائح العلامات الحيوية، شرائح 45 إلى 55.",
+"t63": "ضغط الدم (Blood Pressure)",
+"t64": "ضغط الدم هو قوة الدم على جدران الأوعية، ويُقاس بـملم زئبق. الانقباضي (Systolic) أثناء انقباض البطينين؛ والانبساطي (Diastolic) أثناء الارتخاء؛ وضغط النبض = الفرق بينهما (120/80 يعطي 40 ملم زئبق).",
+"t65": "العوامل: العمر (يرتفع تدريجيًا)، ونشاط الجهاز الودي، وحجم الدم الدائر (فقد السوائل يخفضه والزيادة ترفعه)، والأدوية، ووقت اليوم ودرجة الحرارة.",
+"t66": "مقاس الكفة (AHA): عرض البالون 40% على الأقل من محيط الطرف، وطوله من 80 إلى 100%. الكفة الصغيرة أو الرخوة تعطي قراءة أعلى من الحقيقة، والكبيرة تعطي أقل.",
+"t67": "قِس والذراع مدعومة عند مستوى القلب. فوق مستوى القلب تعطي قراءة أقل من الحقيقة، وتحته أعلى. انتظر دقيقتين على الأقل بين قياسين على الطرف نفسه.",
+"t68": "تجنب الذراع التي بها وصول وريدي أو ناسور غسيل كلوي (Fistula)، أو جهة استئصال الثدي.",
+"t69": "أصوات كوروتكوف (Korotkoff)",
+"t70": "المرحلة الأولى: أول صوت نقر واضح = الانقباضي. الثانية: أصوات مكتومة/حفيفية. الثالثة: عالية واضحة. الرابعة: اكتام مفاجئ = الانبساطي الأول. الخامسة: آخر صوت قبل الصمت = الانبساطي الثاني.",
+"t71": "الفجوة السمعية (Auscultatory gap): تختفي الأصوات بين المرحلتين الأولى والثانية (حتى 40 ملم زئبق). إغفالها قد يقلل تقدير الانقباضي أو يزيد تقدير الانبساطي؛ اكشفها بجس النبض أثناء النفخ.",
+"t72": "القيم غير الطبيعية",
+"t73": "ما قبل ارتفاع الضغط (Prehypertension): من 120/80 إلى 139/89 ملم زئبق. ارتفاع الضغط: ارتفاع مزمن في الضغط.",
+"t74": "انخفاض الضغط (Hypotension): أقل من 100/60 ملم زئبق. والهبوط المهم عن خط أساس المريض نفسه أهم من أي رقم منفرد.",
+"t75": "انخفاض الضغط الانتصابي (Orthostatic): هبوط 25 ملم زئبق على الأقل انقباضيًا أو 10 انبساطيًا عند الانتقال من الرقود للوقوف؛ أعراضه الدوار وتشوش الرؤية والإغماء.",
+"t76": "المصدر: شرائح العلامات الحيوية، شرائح 56 إلى 84."
+};
+var AR_S2 = {
+"t80": "الأدوية (Medications)",
+"t81": "أساسيات الدواء وأسماؤه وتخزينه",
+"t82": "الدواء (Medication) مادة تُعطى للتشخيص أو العلاج أو تخفيف عَرَض أو الوقاية من مرض. علم الأدوية (Pharmacology) هو دراسة تأثير الأدوية على الكائنات الحية. الوصفة (Prescription) هي التوجيه المكتوب لتحضير الدواء وإعطائه.",
+"t83": "الاستخدامات: الوقاية (اللقاحات)، التشخيص (الصبغات، اختبار مانتو)، التثبيط (مضادات السرطان والفيروسات)، العلاج (مضادات الربو)، الشفاء (المضادات الحيوية)، وتعزيز الصحة (الفيتامينات).",
+"t84": "الجوانب القانونية: الممرضة مسؤولة عن أفعالها؛ ووجود أمر الطبيب لا يعفيها من المسؤولية. إذا بدت الجرعة خاطئة أو غير آمنة فلا تعطِ الدواء وتحقق من الطبيب أو الصيدلي. الأدوية المخدرة تُحفظ مقفلة في خزانة الأدوية الخطرة.",
+"t85": "أسماء الدواء الأربعة",
+"t86": "الاسم الكيميائي (Chemical): يصف مكونات الدواء بدقة، مثل N-(4-hydroxyphenyl)acetamide.",
+"t87": "الاسم العلمي (Generic): الاسم الرسمي غير التجاري، موحد في العالم، مثل Paracetamol / Acetaminophen.",
+"t88": "الاسم الرسمي (Official): الاسم المدرج في المراجع الدوائية الرسمية.",
+"t89": "الاسم التجاري (Trade): تختاره الشركة المنتجة ومحمي بعلامة تجارية؛ وللدواء الواحد أسماء تجارية عديدة مثل Panadol وTylenol.",
+"t90": "التخزين",
+"t91": "يُحفظ في مكان بارد وجاف (خزانة أو عربة أو ثلاجة) بعيدًا عن أشعة الشمس المباشرة، مع مراجعة تواريخ الانتهاء.",
+"t92": "نظام الخزائن الثلاث: الأولى للاستخدام الخارجي فقط (مكتوب عليها سم POISON)، والثانية للاستخدام الداخلي، والثالثة للأدوية الخطرة (مورفين، بيثيدين) تحت القفل. وخزانة الطوارئ قرب محطة التمريض بها أدوية الطوارئ والمحاليل الوريدية.",
+"t93": "المصدر: محاضرة إعطاء الأدوية (د. حياة محمد)، ص 1 إلى 18.",
+"t94": "الحقوق العشرة والفحوصات الثلاثة",
+"t95": "الفحوصات الثلاثة (3 Checks)",
+"t96": "افحص الدواء عند إحضار العبوة، وعند إخراج الدواء منها، وعند إعادة العبوة.",
+"t97": "الحقوق العشرة (10 Rights)",
+"t98": "<strong>1. المريض الصحيح:</strong> اسأل المريض عن اسمه الكامل وطابقه مع سوار الهوية والملف. لا تعتمد على رقم الغرفة أو السرير أبدًا.",
+"t99": "<strong>2. الدواء الصحيح:</strong> طابق الملصق مع الأمر؛ وانتبه للمرضى متشابهي الأسماء.",
+"t100": "<strong>3. الوقت الصحيح:</strong> التزم بالجدول والفواصل بين الجرعات؛ المضادات الحيوية تحتاج توقيتًا دقيقًا، ومضادات الالتهاب (NSAIDs) تُعطى بعد الأكل.",
+"t101": "<strong>4. الجرعة الصحيحة:</strong> احسب بدقة وراجع الحساب، خاصة الأدوية عالية الخطورة.",
+"t102": "<strong>5. الطريق الصحيح:</strong> أعطِ بالطريق الموصوف فقط؛ إذا كان غير واضح فاسأل الطبيب، ولا تفترض أبدًا.",
+"t103": "<strong>6. حق المعلومات:</strong> للمريض الحق في معرفة اسم الدواء والغرض منه وآثاره الجانبية وطريقة تناوله.",
+"t104": "<strong>7. حق الرفض:</strong> احترم رفض المريض بعد شرح الغرض والفوائد والعواقب؛ ووثّق الرفض وأبلغ الطبيب.",
+"t105": "<strong>8. التقييم الصحيح:</strong> قيّم قبل الإعطاء؛ مثلًا اجسّ النبض القمّي قبل الديجوكسين وأوقفه إذا كان أقل من المستوى الموصى به.",
+"t106": "<strong>9. التوثيق الصحيح:</strong> وثّق بعد الإعطاء وليس قبله أبدًا: الاسم والجرعة والطريق والتاريخ والوقت والتوقيع.",
+"t107": "<strong>10. التقويم الصحيح:</strong> قيّم استجابة المريض (التأثير العلاجي والآثار الجانبية)، ووثّقها وأبلغ عن غير الطبيعي.",
+"t108": "المصدر: محاضرة إعطاء الأدوية، ص 19 إلى 30.",
+"t109": "الأوامر الدوائية والاختصارات",
+"t110": "النوع", "t111": "المعنى",
+"t112": "فوري (Stat)", "t113": "فورًا، مرة واحدة فقط (خلال 5 دقائق تقريبًا من كتابة الأمر). مثال: مورفين 10 مجم وريدي فورًا.",
+"t114": "في أقرب وقت (ASAP)", "t115": "في أقرب وقت ممكن، خلال 30 دقيقة تقريبًا.",
+"t116": "لمرة واحدة (Single)", "t117": "مرة واحدة في وقت محدد. مثال: Seconal 100 مجم عند النوم.",
+"t118": "مستمر (Standing)", "t119": "بانتظام لفترة محددة أو حتى يُوقف. مثال: أموكسيسيلين 500 مجم مرتين يوميًا لمدة يومين.",
+"t120": "عند الحاجة (PRN)", "t121": "عند الحاجة فقط، بعد تقييم الممرضة للمريض. مثال: Amphojel 15 مل عند الحاجة.",
+"t122": "الأجزاء السبعة الأساسية للأمر الدوائي",
+"t123": "اسم المريض الكامل، التاريخ والوقت، اسم الدواء، الجرعة، طريق الإعطاء، الوقت والتكرار، توقيع الطبيب.",
+"t124": "اختصارات شائعة",
+"t125": "ac قبل الأكل، pc بعد الأكل، AM صباحًا، PM مساءً، bid مرتين يوميًا، tid ثلاث مرات يوميًا، qid أربع مرات يوميًا، q2h كل ساعتين، PO بالفم، IM عضلي، IV وريدي، gtt قطرات، tab قرص، cap كبسولة، ad lib حسب الرغبة، Rx وصفة.",
+"t126": "المصدر: محاضرة إعطاء الأدوية، ص 31 إلى 40.",
+"t127": "أشكال الدواء وطرق إعطائه وأنواع تأثيره",
+"t128": "الأشكال: صلبة (قرص، كبسولة)، سائلة (شراب، محلول، معلق - يُرج قبل الاستخدام)، شبه صلبة (مرهم، لوشن، جل). وأخرى: أقراص استحلاب، بودرة، تحاميل، لاصقات جلدية.",
+"t129": "الطريق الفموي ويشمل تحت اللسان (Sublingual) والشدقي (Buccal - بجانب الخد) حتى الذوبان.",
+"t130": "الحقن (Parenteral): داخل الأدمة ID، تحت الجلد SC، عضلي IM، وريدي IV. وطرق التجاويف تشمل فوق الجافية (Epidural)، داخل القراب (Intrathecal)، داخل العظم (Intraosseous)، داخل الصفاق، داخل الجنبة، وداخل الشريان.",
+"t131": "الموضعي (Topical): على الجلد والأغشية المخاطية. الاستنشاقي: عبر الأنف أو الفم أو أنابيب القصبة الهوائية.",
+"t132": "أنواع تأثير الدواء",
+"t133": "التأثير العلاجي (Therapeutic): الاستجابة المتوقعة، مثل خفض الباراسيتامول للألم والحمى.",
+"t134": "الآثار الجانبية (Side effects): تأثيرات ثانوية متوقعة وغالبًا لا يمكن تجنبها بالجرعات المعتادة (غثيان، ألم معدة).",
+"t135": "التأثيرات الضارة (Adverse effects): شديدة وغير متوقعة، مثل صدمة الحساسية (Anaphylaxis)، والسمية الكبدية، والسمية الكلوية، ومتلازمة ستيفنز-جونسون، ونزيف الجهاز الهضمي.",
+"t136": "التأثيرات السمية (Toxic): من الاستخدام الطويل أو تراكم الدواء (خلل الأيض أو الإخراج).",
+"t137": "التفاعلات التحسسية (Allergic): استجابات مناعية غير متوقعة (طفح، تورم). والتفاعل غير النمطي (Idiosyncratic): استجابة مفرطة أو ناقصة غير معتادة، مثل طفل يصبح متهيجًا مع Benadryl بدل النعاس.",
+"t138": "المصدر: محاضرة إعطاء الأدوية، ص 41 إلى 62.",
+"t139": "أنظمة القياس وحساب الجرعات",
+"t140": "النظام المتري: mg وg وmL وL (الجرام = 1000 مجم، والمجم = 1000 ميكروجرام). النظام المنزلي: قطرات وملاعق وأكواب (غير دقيق؛ 5 مل = ملعقة صغيرة، 15 مل = ملعقة كبيرة). نظام الصيادلة القديم: الجرين (60 مجم = 1 جرين).",
+"t141": "التحويل داخل النظام الواحد بالضرب أو القسمة: 350 مجم = 0.35 جم.",
+"t142": "طرق الحساب",
+"t143": "النسبة والتناسب: الجرعة المتوفرة / الكمية المتوفرة = الجرعة المطلوبة / س. طلب 500 مجم أموكسيسيلين والمتوفر 400 مجم/5 مل: س = 6.25 مل.",
+"t144": "طريقة المعادلة (صلبة): الجرعة المطلوبة ÷ تركيز المخزون = عدد الأقراص. طلب أموكسيسيلين 750 مجم والمتوفر كبسولات 250 مجم: 750÷250 = 3 كبسولات.",
+"t145": "طريقة المعادلة (سائلة): الحجم = (الجرعة المطلوبة × حجم المخزون) ÷ تركيز المخزون. طلب ديجوكسين 250 ميكروجرام والمتوفر 0.5 مجم في 2 مل: حوّل أولًا (0.5 مجم = 500 ميكروجرام)، (250×2)÷500 = 1 مل.",
+"t146": "معدل التنقيط: قطرات/دقيقة = (الحجم الكلي × معامل التنقيط) ÷ (الزمن بالساعات × 60). الطقم الكبير (Macro) 15 قطرة/مل والصغير (Micro) 60. 1000 مل خلال 8 ساعات بطقم كبير: (1000×15)÷(8×60) = حوالي 31 قطرة/دقيقة.",
+"t147": "حسب وزن الجسم: الجرعة الكلية = الجرعة الموصوفة × الوزن، مثل 5 مجم/كجم × 60 كجم = 300 مجم. وحسب مساحة سطح الجسم (BSA، تُستخدم للعلاج الكيميائي): 50 مجم/م2 × 1.8 م2 = 90 مجم.",
+"t148": "المصدر: محاضرة إعطاء الأدوية، ص 63 إلى 83.",
+"t149": "العوامل المؤثرة على فعل الدواء والسلامة والأخطاء",
+"t150": "العوامل: حجم الجسم، الحمل والرضاعة، العمر (الرضّع يحتاجون جرعات أصغر وكبار السن يستجيبون بشكل مختلف)، الجنس، الوراثة (اختلاف الإنزيمات)، الغذاء (فيتامين K يعاكس الوارفارين)، البيئة، العوامل النفسية، المرض (الكبد والكلى والدورة الدموية)، وقت الإعطاء، والتحمل والمقاومة (Tolerance & Resistance).",
+"t151": "قواعد السلامة: اقرأ الأمر وتحقق إذا كان غير واضح؛ ضع العمر والوزن في الحسبان؛ افحص لون الدواء ورائحته وقوامه؛ اتبع الحقوق العشرة والفحوصات الثلاثة؛ خذ التاريخ الدوائي ومنه الحساسية؛ ابقَ مع المريض حتى يتناول الدواء كاملًا؛ ولا تترك الدواء مع المريض أبدًا.",
+"t152": "الأخطاء الدوائية: أخطاء غير مقصودة في الوصف أو الصرف أو الإعطاء. أنواعها الأربعة: أخطاء الوصف، والنسخ/التفسير (سوء فهم الاختصارات)، والتحضير (خطأ حسابي)، والإعطاء (جرعة أو وقت خاطئ، حذف أو جرعة زائدة). ومعظم الأخطاء يحدث أثناء الإعطاء. أبلغ عن الأخطاء وفق سياسة المستشفى.",
+"t153": "المصدر: محاضرة إعطاء الأدوية، ص 84 إلى 95.",
+"t154": "مرجع عام",
+"t155": "العملية التمريضية (Nursing Process - ADPIE)",
+"t156": "<strong>A</strong> التقييم (Assessment): جمع البيانات الذاتية والموضوعية.",
+"t157": "<strong>D</strong> التشخيص (Diagnosis): تحليل البيانات وتحديد مشكلات المريض (التشخيصات التمريضية).",
+"t158": "<strong>P</strong> التخطيط (Planning): وضع الأهداف واختيار التدخلات بالمشاركة مع المريض.",
+"t159": "<strong>I</strong> التنفيذ (Implementation): تنفيذ الرعاية المخططة.",
+"t160": "<strong>E</strong> التقويم (Evaluation): التحقق من تحقق الأهداف، ثم إعادة التقييم والتعديل.",
+"t161": "مرجع عام (ليس من شرائحنا بعد)؛ سيُطابق مع محاضرة العملية التمريضية عند مشاركتها.",
+"t162": "نظافة اليدين (WHO Five Moments)",
+"t163": "<strong>1.</strong> قبل لمس المريض. <strong>2.</strong> قبل إجراء نظيف أو معقم. <strong>3.</strong> بعد خطر التعرض لسوائل الجسم. <strong>4.</strong> بعد لمس المريض. <strong>5.</strong> بعد لمس محيط المريض.",
+"t164": "الماء والصابون: من 40 إلى 60 ثانية. المطهر الكحولي: من 20 إلى 30 ثانية حتى يجف.",
+"t165": "اغسل بالماء والصابون عندما تكون اليدان متسختين بوضوح. أما عدوى الميكروبات المكوّرة للأبواغ مثل C. difficile فالإرشادات تختلف: منظمة الصحة العالمية تفضّل الماء والصابون عند اشتباه أو تأكد التعرض، بينما تقبل CDC المطهر الكحولي في معظم الحالات غير الوبائية ما لم تكن اليدان متسختين، وتشجع الماء والصابون أثناء التفشيات. وسياسة كليتك ومكان تدريبك هي الفيصل في الممارسة.",
+"t166": "إرشاد عام (WHO، CDC)، وليس من شرائحنا؛ اتبع محاضرة مكافحة العدوى في كليتك.",
+"t170": "الملخصات الصوتية",
+"t171": "العلامات الحيوية (بالعربية)",
+"t172": "الملف الصوتي سيُضاف قريبًا.",
+"t173": "شرح صوتي قصير بالعربية لملخص العلامات الحيوية.",
+"t174": "إعطاء الأدوية (بالعربية)",
+"t175": "شرح صوتي قصير بالعربية لملخص إعطاء الأدوية.",
+"t176": "العملية التمريضية (بالعربية)",
+"t177": "شرح صوتي قصير بالعربية لملخص العملية التمريضية.",
+"t180": "السؤال", "t181": "الإجابة", "t182": "السابق", "t183": "التالي",
+"t184": "اضغط على البطاقة لقلبها.",
+"t185": "اختبار",
+"t186": "الإصدار الثاني، مبني على محاضرات أساسيات التمريض لدفعتنا. راجعها مقابل شرائحك قبل الامتحانات."
+};
+var AR_STATIC = Object.assign({}, AR_S1, AR_S2);
+var T_DYN = {"Question": "السؤال", "Score": "النتيجة", "See final score": "عرض النتيجة النهائية", "Next question": "السؤال التالي", "Correct. ": "إجابة صحيحة. ", "Not quite. ": "ليست الإجابة الصحيحة. ", "Done": "انتهى", "full": "درجة كاملة، أحسنت! جرّب أن تشرح كل إجابة بصوت مرتفع، فهذا هو الاختبار الحقيقي.", "review": "راجع تبويب الملخصات للأسئلة التي أخطأت فيها، ثم أعد الاختبار."};
+function T(s) { return (LANG === "ar" && T_DYN[s]) ? T_DYN[s] : s; }
+function setLang(l) {
+  LANG = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = (l === "ar") ? "rtl" : "ltr";
+  document.title = (l === "ar") ? "أساسيات التمريض - موقع المذاكرة (نسخة 2)" : "Nursing Fundamentals - Study Site (v2)";
+  document.getElementById("lang-toggle").textContent = (l === "ar") ? "English" : "العربية";
+  document.querySelectorAll("[data-i18n-key]").forEach(function(el) {
+    var en = el.getAttribute("data-en");
+    if (en === null) { en = el.innerHTML; el.setAttribute("data-en", en); }
+    var ar = AR_STATIC[el.getAttribute("data-i18n-key")];
+    el.innerHTML = (l === "ar" && ar) ? ar : en;
+  });
+  cards = (l === "ar") ? cardsAR : cardsEN;
+  quiz = (l === "ar") ? quizAR : quizEN;
+  renderCard();
+  renderQuestion();
+  try { localStorage.setItem("nf-lang", l); } catch (e) {}
+}
+document.getElementById("lang-toggle").addEventListener("click", function() {
+  setLang(LANG === "ar" ? "en" : "ar");
+});
+try { if (localStorage.getItem("nf-lang") === "ar") setLang("ar"); } catch (e) {}
+</script>
+</body>
+</html>
